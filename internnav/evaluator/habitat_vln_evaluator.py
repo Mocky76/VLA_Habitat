@@ -636,6 +636,7 @@ class VLNEvaluator:
                                     dp_actions = self.model.generate_traj(
                                         traj_latents, images_dp, depths_dp, use_async=True
                                     )
+                                    print("[Internva dual-system    dp_actions ]",  dp_actions)
 
                                 random_choice = np.random.choice(dp_actions.shape[0])
                                 if self.args.continuous_traj:
@@ -689,6 +690,8 @@ class VLNEvaluator:
                                     dp_actions = self.model.generate_traj(
                                         traj_latents, images_dp, depths_dp, use_async=True
                                     )
+                                    print("[Internva dual-system  2  dp_actions ]",  dp_actions, dp_actions.shape)
+                                    
 
                                 random_choice = np.random.choice(dp_actions.shape[0])
                                 if self.args.continuous_traj:

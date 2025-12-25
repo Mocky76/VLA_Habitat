@@ -135,6 +135,84 @@ def traj_to_actions(dp_actions, use_discrate_action=True):
     else:
         return trajectory
 
+    
+
+def traj_to_actions_Gr00t(dp_actions,use_discrate_action=True):
+    def reconstruct_xy_from_delta(delta_xyt):
+        """
+        Input:
+            delta_xyt: [B, T, 3], dx, dy are position increments in global coordinates, dθ is heading difference (not used for position)
+            start_xy: [B, 2] starting point
+        Output:
+            xy: [B, T+1, 2] reconstructed global trajectory
+        """
+        start_xy = np.zeros((len(delta_xyt), 2))
+        delta_xy = delta_xyt[:, :, :2]  # Take dx, dy parts
+        cumsum_xy = np.cumsum(delta_xy, axis=1)  # [B, T, 2]
+
+        B = delta_xyt.shape[0]
+        T = delta_xyt.shape[1]
+        xy = np.zeros((B, T + 1, 2))
+        xy[:, 0] = start_xy
+        xy[:, 1:] = start_xy[:, None, :] + cumsum_xy
+
+        return xy
+
+    def trajectory_to_discrete_actions_close_to_goal(trajectory, step_size=0.25, turn_angle_deg=15, lookahead=4):
+        actions = []
+        yaw = 0.0
+        pos = trajectory[0]
+        turn_angle_rad = np.deg2rad(turn_angle_deg)
+        traj = trajectory
+        goal = trajectory[-1]
+
+        def normalize_angle(angle):
+            return (angle + np.pi) % (2 * np.pi) - np.pi
+
+        while np.linalg.norm(pos - goal) > 0.2:
+            # Find the nearest trajectory point index to current position
+            dists = np.linalg.norm(traj - pos, axis=1)
+            nearest_idx = np.argmin(dists)
+            # Look ahead a bit (not exceeding trajectory end)
+            target_idx = min(nearest_idx + lookahead, len(traj) - 1)
+            target = traj[target_idx]
+            # Target direction
+            target_dir = target - pos
+            if np.linalg.norm(target_dir) < 1e-6:
+                break
+            target_yaw = np.arctan2(target_dir[1], target_dir[0])
+            # Difference between current yaw and target yaw
+            delta_yaw = normalize_angle(target_yaw - yaw)
+            n_turns = int(round(delta_yaw / turn_angle_rad))
+            if n_turns > 0:
+                actions += [2] * n_turns
+            elif n_turns < 0:
+                actions += [3] * (-n_turns)
+            yaw = normalize_angle(yaw + n_turns * turn_angle_rad)
+
+            # Move forward one step
+            next_pos = pos + step_size * np.array([np.cos(yaw), np.sin(yaw)])
+
+            # If moving forward one step makes us farther from goal, stop
+            if np.linalg.norm(next_pos - goal) > np.linalg.norm(pos - goal):
+                break
+
+            actions.append(1)
+            pos = next_pos
+
+        return actions
+
+    # unnormalize
+    dp_actions[:, :, :2] /= 4.0
+    all_trajectory = reconstruct_xy_from_delta(dp_actions.float().cpu().numpy())
+    trajectory = np.mean(all_trajectory, axis=0)
+    if use_discrate_action:
+        actions = trajectory_to_discrete_actions_close_to_goal(trajectory)
+        return actions
+    else:
+        return trajectory
+
+
 
 @dataclass
 class S2Input:

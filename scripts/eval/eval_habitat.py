@@ -47,6 +47,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+    print("[[[[args.mode]]]]", args.mode)
 
     init_distributed_mode(args)
     local_rank = args.local_rank
@@ -57,7 +58,9 @@ def main():
     processor.tokenizer.padding_side = 'left'
 
     device = torch.device(f"cuda:{local_rank}")
+    print("[[[[args.mode]]]]", args.mode)
     if args.mode == 'dual_system':
+        print("[[[[InternVLAN1ForCausalLM]]]]")
         model = InternVLAN1ForCausalLM.from_pretrained(
             args.model_path,
             torch_dtype=torch.bfloat16,
@@ -95,6 +98,11 @@ def main():
 
     # import ipdb; ipdb.set_trace()
     dist.all_gather(ep_num_all, ep_num)
+    # if args.world_size > 1:
+    #     dist.all_gather(ep_num_all, ep_num)
+    # else:
+    #     ep_num_all[0] = ep_num
+
     sucs_all = [torch.zeros(ep_num_all[i], dtype=sucs.dtype).to(sucs.device) for i in range(world_size)]
     spls_all = [torch.zeros(ep_num_all[i], dtype=spls.dtype).to(spls.device) for i in range(world_size)]
     oss_all = [torch.zeros(ep_num_all[i], dtype=oss.dtype).to(oss.device) for i in range(world_size)]
