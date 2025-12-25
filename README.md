@@ -6,8 +6,10 @@
 基本类即函数定义：InternNav/internnav/evaluator/final_habitat_vln_evaluator.py 更换模型后如果有新的参数或逻辑，可以在这里添补
 使用方法：
 1.首先运行：
+
 uvicorn InternNav.scripts.eval.server_Gr00t:app \
     --host 127.0.0.1 \
     --port 9000
+    
 2.接着运行：
 python scripts/eval/eval_main.py --model_path /data/sjh/GR00T-Internva/output_uav/checkpoint-300000 --continuous_traj --output_path result/Gr00t/val_unseen_32traj_8steps --save_video
