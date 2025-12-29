@@ -18,7 +18,7 @@ pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 \
 pip install -e .[model] --no-build-isolation
 
 
-#4.安装habitat
+# 4.安装habitat
 conda install habitat-sim==0.2.4 withbullet headless -c conda-forge -c aihabitat
 git clone --branch v0.2.4 https://github.com/facebookresearch/habitat-lab.git
 cd habitat-lab
