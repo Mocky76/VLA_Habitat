@@ -152,3 +152,4 @@ checkpoints
 internnav/model/basemodel/LongCLIP/
 .gradio/
 result/
+*.swp
