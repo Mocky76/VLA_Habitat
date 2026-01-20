@@ -40,6 +40,7 @@ from internnav.utils.dist import *
 from internnav.evaluator.final_habitat_vln_evaluator import Evaluator
 from internnav.evaluator.final_habitat_vln_evaluator import LLMAgent
 from internnav.evaluator.HTTPTrajectoryClient import Gr00tTrajectoryClient
+from internnav.evaluator.InternVATrajectoryClient import InternVATrajectoryClient
 
 def parse_args():
 
@@ -82,9 +83,16 @@ def main():
     np.random.seed(local_rank)
 
     # ===== 1. Trajectory Client =====
-    traj_client = Gr00tTrajectoryClient(
-        url=f"http://{args.gr00t_host}:{args.gr00t_port}/act"
+    print(f"Connecting to Trajectory Server at http://{args.gr00t_host}:{args.gr00t_port}/act ...")
+    
+    # 使用新写的 Client
+    traj_client = InternVATrajectoryClient(
+        url=f"http://{args.gr00t_host}:{args.gr00t_port}/act",
+        max_history=args.num_history # 传入历史长度参数
     )
+    # traj_client = Gr00tTrajectoryClient(
+    #     url=f"http://{args.gr00t_host}:{args.gr00t_port}/act"
+    # )
 
     # * 2. initialize evaluator
     # ===== 1. 构建 Agent=====
@@ -112,4 +120,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
